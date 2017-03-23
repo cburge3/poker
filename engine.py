@@ -28,18 +28,51 @@ class Card(object):
     def suit(self):
         return self.number // 13
 
+    def __gt__(self, other):
+        if self.rank() > other.rank(): return True
+
 # This assumes that there are all unique cards
 
 
 class Hand(object):
-    def __init__(self, cards):
-        self.cards = cards
+    def __init__(self, c):
+        self.cards = c
 
     def __repr__(self):
         return str(self.cards)
 
     def __iter__(self):
-        yield [int(a) for a in self.cards]
+        yield [int(z) for z in self.cards]
+
+    def __gt__(self, other):
+        sscore, scards = self.pokerhand()
+        oscore, ocards = other.pokerhand()
+        firstkickers = [1, 5]
+        fourthkickers = [3, 6]
+        fifthkickers = [2,7]
+        if sscore > oscore:
+            return True
+        elif sscore in firstkickers:
+            if scards[0] > ocards[0]:
+                return True
+        elif sscore == 2:
+            if scards[0] > ocards[0]:
+                return True
+                if scards [4] > ocards[4]:
+                    return True
+        elif sscore in fourthkickers:
+            if scards[0] > ocards[0]:
+                return True
+            elif scards [0] == ocards[0] and scards[3] > ocards[3]:
+                return True
+            elif scards[0] == ocards[0] and scards[3] == ocards[3] and scards[4] > ocards[4]:
+                return True
+        elif sscore == 6:
+            pass
+    def comparecards(self,scards, ocards):
+        for k in range(0,len(self)):
+            if scards[k] > ocards[k]:
+                return True
 
 
     # These functions all return a value and the corresponding cards that make up the hand
@@ -77,6 +110,7 @@ class Hand(object):
         big_flush = -1
         [divs.append(c.suit()) for c in self.cards]
         # this logic limits the search to finding only 1 flush per set of cards
+        # which in turn means that results are unreliable for >= 10 cards
         for a in range(0, 4):
             if divs.count(a) >= handsize:
                 big_flush = a
@@ -114,7 +148,6 @@ class Hand(object):
         if -1 in straights:
             straights.remove(-1)
             straights.add(12)
-
         for c in cards:
             if c.rank() in straights:
                 return_hand.append(c)
@@ -130,13 +163,6 @@ class Hand(object):
         [mods.append(c.rank()) for c in cards]
         return cards[mods.index(max(mods))]
 
-    def getlowcard(self, cards=None):
-        if cards is None:
-            cards = self.cards
-        mods = []
-        [mods.append(c.rank()) for c in cards]
-        return cards[mods.index(min(mods))]
-
     def getbestcards(self, cards=None, numcards=None, straight=False):
         if cards is None:
             cards = self.cards
@@ -148,52 +174,33 @@ class Hand(object):
         for a in range(0,numcards):
             return_hand.append(self.gethighcard(cards))
             cards.remove(return_hand[-1])
-        # # detect a wheel ace
-        # if straight == True:
-        #     print(return_hand)
-        #     if return_hand[0].rank() == 12:
-        #         print('found wheel ace')
-        #         if return_hand[4].rank() != 0:
-        #             print('wheel ace is too low')
-        #             return_hand.pop(0)
-        #             return_hand.append(self.gethighcard(cards))
-        #     # make sure straight does not contain duplicate ranks
-        #     # since it is built from a list that may contain duplicates
-        #     top = return_hand[0].rank()
-        #     for z in range(1,len(return_hand)):
-        #         if top - return_hand[z].rank() == 1:
-        #             top -= 1
-        #         else:
-        #             return_hand.pop(z)
-        #             return_hand.append(self.gethighcard(cards))
         return return_hand
+
     def getbeststraight(self, cards=None):
         return_hand = []
         if cards is None:
             cards = self.cards
         rn = set([c.rank() for c in cards])
+        rn = list(rn)
         if 12 in rn:
-            rn.add(-1)
-        rs = sorted(rn)
-        if 12 in rs:
-            print(rs)
-        # detect a wheel ace
-        print(return_hand)
-        if return_hand[0].rank() == 12:
-            print('found wheel ace')
-            if return_hand[4].rank() != 0:
-                print('wheel ace is too low')
-                return_hand.pop(0)
-                return_hand.append(self.gethighcard(cards))
-        # make sure straight does not contain duplicate ranks
-        # since it is built from a list that may contain duplicates
-        top = return_hand[0].rank()
-        for z in range(1,len(return_hand)):
-            if top - return_hand[z].rank() == 1:
-                top -= 1
-            else:
-                return_hand.pop(z)
-                return_hand.append(self.gethighcard(cards))
+            rn.append(-1)
+        rn.sort(reverse=True)
+        start = -2
+        for r in rn:
+            for c in range(handsize-1,1,-1):
+                if r - c not in rn:
+                    break
+                start = r
+        toadd = list(range(start,start-handsize,-1))
+        if -1 in toadd:
+            toadd.remove(-1)
+            toadd.append(12)
+        for z in cards:
+            if z.rank() in toadd:
+                return_hand.append(cards[cards.index(z)])
+                toadd.remove(z.rank())
+        return_hand.sort(reverse=True)
+        return return_hand
 
     def pokerhand(self, cards=None):
         return_hand = []
@@ -204,12 +211,7 @@ class Hand(object):
         if flsh:
             strtflsh = self.checkstraight(flsh)
             if strtflsh:
-                return 1, self.getbeststraight()
-                # return 1, self.getbestcards(strtflsh,straight=True)
-            # dummy = Hand(list(set(strt).intersection(set(flsh))))
-            # if dummy.checkstraight():
-            #     return_hand = dummy.getbestcards(numcards=5, straight=True)
-            #     return 1, return_hand
+                return 1, self.getbeststraight(strtflsh)
         fofk = self.checkxkind(4)
         if fofk:
             return 2, fofk
@@ -222,7 +224,7 @@ class Hand(object):
             return_hand = self.getbestcards(flsh, numcards=5)
             return 4, return_hand
         if strt:
-            return_hand = self.getbestcards(strt, numcards=5, straight=True)
+            return_hand = self.getbeststraight(strt)
             return 5, return_hand
         if thrk:
             return_hand.append(thrk[0:3]+self.getbestcards(thrk[3:], numcards=2))
@@ -239,6 +241,8 @@ class Hand(object):
         return 9, self.getbestcards(numcards=5)
 
 
+
+# TESTING
 # hand = Hand([Card(0),Card(38),Card(21),Card(50),Card(39)])
 rhand = []
 
@@ -246,21 +250,26 @@ clist = [7, 7, 39, 40, 38, 48, 29, 28, 38]
     # [18, 45, 17, 32, 16, 35, 41, 47, 46]
     # [16, 18, 25, 5, 8, 48, 10, 7, 6]
     # [26, 3, 18, 4, 12, 27, 14, 0, 41]
-# for b in range(0,100):
-#     rhand = []
-#     # size = randint(2, handsize+5)
-#     size = 9
-#     for a in range(0,size):
-#         rhand.append(Card(randint(0,51)))
-#     hand3 = Hand(rhand)
-#     print(hand3,list(hand3))
-#     print(hand3.pokerhand())
-#     print(hand3.checkstraight())
-#     print('\n')
+for b in range(0,1000):
+    rhand = []
+    # size = randint(2, handsize+5)
+    size = 9
+    for a in range(0,size):
+        rhand.append(Card(randint(0,51)))
+    hand3 = Hand(rhand)
+    print(hand3,list(hand3))
+    h, cards = (hand3.pokerhand())
+    print(h,cards)
+    if h == 5:
+        print('Found Straight')
+    if h == 1:
+        print('STRAIGHT FLUSH')
+    # print(hand3.getbeststraight())
+    print('\n')
 
 
-hand1 = Hand([Card(c) for c in clist])
-print(hand1)
-print(hand1.pokerhand())
-print(hand1.checkstraight())
+# hand1 = Hand([Card(c) for c in clist])
+# print(hand1)
+# print(hand1.pokerhand())
+# print(hand1.getbeststraight())
 
