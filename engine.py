@@ -63,7 +63,7 @@ class Hand(object):
     def comparehands(self, other):
         sscore, scards = self.pokerhand()
         oscore, ocards = other.pokerhand()
-        # format:  types of hands to compare - ordered cards to compare in those hands in case of a tie
+        # format:  types of hands to compare - ordered cards in a 5 card hand to compare in those hands in case of a tie
         firstkickers = [1, 5]  # any kind of straight - 1
         fourthkickers = [3, 6]  # 3 of a kind or full house - 1,4,5
         fifthkickers = [2, 7]  # four of a kind or two pair - 1,3,5
@@ -263,6 +263,7 @@ class Hand(object):
                 return 8, return_hand
         return_hand = self.getbestcards(numcards=5)
         return 9, return_hand
+
 
 if __name__ == '__main__':
     pass

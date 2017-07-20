@@ -1,5 +1,6 @@
 from engine import *
 from time import perf_counter
+from random import randint
 
 # Single hand testing
 clist = [6, 24, 25, 39, 4, 29, 46]
@@ -29,7 +30,6 @@ def pokertest():
         # print(list(hand3),list(hand4))
         print('three',hand3,list(hand3),'\n',hand3.pokerhand(),'\n','four',hand4,list(hand4),'\n',hand4.pokerhand())
         if hand4 > hand3:
-            pass
             print('four wins ' + poker_hands[hand4.pokerhand()[0]] + '\n')
         elif hand3 > hand4:
             print('three wins ' + poker_hands[hand3.pokerhand()[0]] + '\n')
