@@ -60,6 +60,23 @@ class Hand(object):
         else:
             return False
 
+    def __add__(self, other):
+        temp = self.cards.copy()
+        if type(other) is Hand:
+            for i in other.cards:
+                temp.append(i)
+            # return temp
+        elif type(other) is int:
+            temp.append(Card(other))
+        else:
+            for i in other:
+                temp.append(Card(i))
+        return Hand(temp)
+
+    def __len__(self):
+        return len(self.cards)
+
+
     def comparehands(self, other):
         sscore, scards = self.pokerhand()
         oscore, ocards = other.pokerhand()
