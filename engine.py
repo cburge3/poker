@@ -1,5 +1,7 @@
+from random import randint
 # constants
 handsize = 5
+decksize = 52
 
 poker_hands = {1: 'Straight Flush', 2: 'Four of a Kind', 3: 'Full House', 4: 'Flush', 5: 'Straight',
                6: 'Three of a Kind', 7: 'Two Pair', 8: 'One Pair', 9: 'High Card'}
@@ -7,6 +9,16 @@ poker_hands = {1: 'Straight Flush', 2: 'Four of a Kind', 3: 'Full House', 4: 'Fl
 suits = {0: 'Hearts', 1: 'Clubs', 2: 'Diamonds', 3: 'Spades'}
 ranks = {0: 'Two', 1: 'Three', 2: 'Four', 3: 'Five', 4: 'Six', 5: 'Seven', 6: 'Eight',
          7: 'Nine', 8: 'Ten', 9: 'Jack', 10: 'Queen', 11: 'King', 12: 'Ace', -1: 'Ace'}
+
+
+def shuffleddeck():
+    shuffled = []
+    startdeck = list(range(0, decksize))
+    while len(startdeck) > 0:
+        z = randint(0, len(startdeck) - 1)
+        shuffled.append(startdeck[z])
+        startdeck.pop(z)
+    return shuffled
 
 
 class Card(object):
@@ -30,6 +42,9 @@ class Card(object):
             return True
 
 # This assumes that there are all unique cards
+
+
+
 
 
 class Hand(object):

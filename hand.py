@@ -1,10 +1,8 @@
 from random import randint
-from engine import Card, Hand
+from engine import Card, Hand, shuffleddeck
 from tqdm import tqdm
 
-decksize = 52
-startdeck = list(range(0, decksize))
-shuffled = []
+
 numplayers = 6
 handsize = 5
 communitycards = 5
@@ -21,6 +19,7 @@ def calculateodds(user, opponent, common=None):
     wins = 0
     total = 0
     global besthand
+    # Handle different types of common input
     if common is None:
         common = Hand()
     if not type(common) is Hand:
@@ -28,9 +27,9 @@ def calculateodds(user, opponent, common=None):
         for z in common:
             h.append(Card(z))
         common = Hand(h)
-    # denominator = 52 - (len(user) + len(common))
+
     deck = createremainderdeck(user + common)
-    # print("remainder deck {0}".format(deck))
+
     if len(common) < communitycards:
         for communities in deck:
             w, t = calculateodds(user, opponent, common=(common + communities))
@@ -38,6 +37,7 @@ def calculateodds(user, opponent, common=None):
             total += t
 
     else:
+        # debugging information:
         # print("User ", user)
         # print("common ", common)
         # print("Opponent ", opponent)
@@ -71,10 +71,7 @@ def createremainderdeck(cards):
     return d
 
 
-while len(startdeck) > 0:
-    z = randint(0,len(startdeck)-1)
-    shuffled.append(startdeck[z])
-    startdeck.pop(z)
+shuffled = shuffleddeck()
 
 for x in range(0,deal):
     usr.append(Card(shuffled.pop()))
@@ -86,13 +83,14 @@ c = Hand(opp)
 # print(u, c)
 # print(u > c)
 # print(createremainderdeck(u))f
-print("User {0}".format(usr))
-print("Opponent {0}".format(opp))
+print("User {}".format(usr))
+print("Opponent {}".format(opp))
 coms = []
-for a in range(0, 3):
+# coms specifies the common cards already known.  The max community cards is given by the constant communitycards
+for a in range(0, 4):
     coms.append(shuffled.pop())
 j = Hand([Card(d) for d in coms])
-print("Community {0}".format(j))
+print("Community {}".format(j))
 wins, total = calculateodds(u, c, coms)
-print("Wins: {0} out of {1} ({2})".format(wins, total, wins/total))
+print("Wins: {} out of {} ({})".format(wins, total, wins/total))
 print(besthand.pokerhand())
